@@ -78,6 +78,7 @@ Another prequisite is explicitly [disabling `privateLinkServiceNetworkPolicies`]
 In addition to the Customer VNET, Outbound configuration:
 - Private Link Service is deployed on the Gateway and Headnode Load Balancers and these are now Standard SKU.
 - Private access to the Ambari portal and SSH access to the Headnodes is now possible through Private Endpoints in other VNETs that are not peered or otherwise connected to the cluster VNET.
+
 :exclamation:the remote VNET must explicitly provide DNS resolution from the cluster FQDNs https://{clustername}.azurehdinsight.net resp. https://{clustername}-ssh.azurehdinsight.net to the Private Endpoint IP addresses. This is not configured automatically for Private Endpoints to Private Link Services.
 - Direct private access from within the VNET, peered VNETs or on-premise via ExpressRoute or VPN is still possible through the Loab Balancer's private front-end IP addresses. 
 
