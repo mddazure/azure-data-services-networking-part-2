@@ -113,9 +113,11 @@ Databricks SQL runs on a separate cluster type called SQL Warehouse. This cluste
 
 ### Managed VNET
 
-![image](images/)
+![image](images/databricks-mgdvnet.png)
 
 
 ### Managed VNET - No Public IP
+
+![image](images/databricks-mgdvnet-npip.png)
 
 ## Azure Machine Learning
