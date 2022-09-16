@@ -85,5 +85,37 @@ In addition to the Customer VNET, Outbound configuration:
 ![image](images/hdi-custvnetoutbound-pls.png)
 
 ## Databricks
+Azure Databricks is the implementation on Azure of the analytics platform designed by Databricks Inc. (https://www.databricks.com/product/azure). Although based on third party technology, it is a first party Azure-native service. Similar implementations are available in AWS and GCP.
 
-## Machine Learning
+Azure Databricks comprises three service components:
+
+- [Databricks Data Science & Engineering](https://docs.microsoft.com/en-us/azure/databricks/scenarios/what-is-azure-databricks-ws)
+This is a "zero-management" implementation of the Apache Spark big data analytics platform, providing fully managed Spark clusters operated through a interactive workspace web portal. It abstracts infrastructure complexity and removes the need for specialized expertise to set up and configure the Spark infrastructure.
+
+- [Databricks Machine Learning](https://docs.microsoft.com/en-us/azure/databricks/scenarios/what-is-azure-databricks-ml)
+Databricks Machine Learning is an integrated end-to-end machine learning platform incorporating managed services for experiment tracking, model training, feature development and management, and feature and model serving. 
+
+- [Databricks SQL](https://docs.microsoft.com/en-us/azure/databricks/scenarios/what-is-azure-databricks-sqla)
+Environment to run ad-hoc SQL queries on a data lake. 
+
+### Architecture
+The architecture of Azure Databricks consists of a control plane and a data plane. 
+
+The control plane runs in an Azure environment owned and managed by the Azure Databricks service. It is represented by the Databricks service element in the Resource Group selected by the customer at when creating the service. The resources it runs on are not visible to the customer. It contains backend services that control the customer's data plane compute clusters, the Databricks web application for the workspace portal and notebooks, and job scheduler. The control plane does not process customer data, with the exception of partial job results for display in notebooks in the web portal. 
+
+The data plane consists of the compute instances that process customer data. It runs in the customer's Azure subscription, in a Resource Group created by the Databricks service. This Resource Group is protected by a Deny assignment permitting only read access and the ability to create Private Endpoint connections to Storage. The data plane accesses customer data in Azure stotage and external sources. The network configuration options available to secure the data plane and the customer's data access are the topic of the sections below.
+
+The Data Science & Engineering and Machine Learning service components share the same compute cluster infrastructure. Clusters are created from the Databricks workspace portal (not the Azure portal).Clusters consist of Linux VMs created from images managed by the Azure Databricks service. These images contain the Databricks Runtime, which includes Apache Spark and tools and libraries. Machine Learning requires an ML-enabled image type to be selected at cluster creation; these image types include the Databricks Runtime for Machine Learning.
+
+Databricks SQL runs on a separate cluster type called SQL Warehouse. This cluster type is inserted into the same network as the Data Science & Engineering and Machine Learning cluster type.
+
+![image](images/databricks-architecture-azure.png)
+
+### Managed VNET
+
+![image](images/)
+
+
+### Managed VNET - No Public IP
+
+## Azure Machine Learning
