@@ -9,6 +9,10 @@ This is the second part to the article summarizing networking functionality acro
     - [HDI - Customer VNET, Outbound](#hdi---customer-vnet-outbound)
     - [HDI - Customer VNET, Outbound with Private Link Service](#hdi---customer-vnet-outbound-with-private-link-service)
   - [Databricks](#databricks)
+    - [Architecture](#architecture)
+    - [Managed VNET](#managed-vnet)
+    - [Managed VNET - No Public IP](#managed-vnet---no-public-ip)
+    - [VNET Injection](#vnet-injection)
   - [Machine Learning](#machine-learning)
 
 ## Legend
@@ -111,13 +115,40 @@ Databricks SQL runs on a separate cluster type called SQL Warehouse. This cluste
 
 ![image](images/databricks-architecture-azure.png)
 
+Databricks supports deployment of compute instances in either in a VNET managed by the service, or in a VNET managed by the customer. In both options, all infrastructure is in the same customer subnscription as the Databricks resource. Documentation from Microsoft resp. Databricks describing network deployment option is here [Manage virtual networks](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/) and here [Azure Databricks – Bring Your Own VNET](https://www.databricks.com/blog/2019/03/20/azure-databricks-bring-your-own-vnet.html)
+
 ### Managed VNET
+Compute resources are placed in a VNET controlled by the Databricks service located in the Managed Resource Group. 
+
+The Managed VNET has following non-configurable properties
+- Name: workers-vnet
+- Address space: 10.139.0.0/16
+  - public-subnet: 10.139.0.0/18
+  - private-subnet: 10.139.64.0/18
+- Network Security Group: workers-nsg on both subnets, contains inbound rules permiting the control plane to access the compoute instances
+
+Cluster compute nodes (Workers) each have two network interface cards (NICs), connected to public-subnet and private-subnet respectively. They have a Public IP on the public NIC; this is used for inbound traffic from the control plane and for outbound traffic to public endpoints of data stores.
 
 ![image](images/databricks-mgdvnet.png)
 
+The customer can view the workers-vnet, but cannot modify or deploy additional resources into it as it is protected by the Deny assignment on the Managed Resource Group. 
+
+Managed VNET in Databricks does not support Managed Private Endpoints like Azure Data Factory and Synapse Analytics.
+
+The Managed VNET can be peered with a customer VNET, facilitating hybrid connectivity from Databricks compute resources via a VNET Gateway in the customer's VNET. Peering the Managed VNET to a customer VNET is configured from the Databricks blade in the Azure portal, not from the VNET blade. The customer VNET's IP space cannot overlap with the workers-vnet.
+
+![image](images/databricks-mgdvnet-peering.png)
+
+The peered customer VNET can contain Private Endpoints connecting to PaaS services, and these are reachable from the Managed VNET. However, because it is not possible to attach a Private DNS Zone to the Managed VNET, nor to modify the VNET's Custom DNS setting, Worker VMs cannot resolve PaaS service FQDN's to PE private addresses. 
+
+![image](images/peerdatabricksvnet.png)
 
 ### Managed VNET - No Public IP
+This option reverses the direction of control plane traffic: cluster compute nodes do not have Public IPs and there are no inbound flows from the control plane into nodes. Control traffic is now outbound from the nodes, via a NAT Gateway instance attached to both public-subnet and private-subnet. This is managed by the Databricks service and cannot be modified.
 
 ![image](images/databricks-mgdvnet-npip.png)
+
+### VNET Injection
+
 
 ## Azure Machine Learning
