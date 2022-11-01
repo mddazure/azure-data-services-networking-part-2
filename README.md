@@ -135,20 +135,40 @@ The customer can view the workers-vnet, but cannot modify or deploy additional r
 
 Managed VNET in Databricks does not support Managed Private Endpoints like Azure Data Factory and Synapse Analytics.
 
-The Managed VNET can be peered with a customer VNET, facilitating hybrid connectivity from Databricks compute resources via a VNET Gateway in the customer's VNET. Peering the Managed VNET to a customer VNET is configured from the Databricks blade in the Azure portal, not from the VNET blade. The customer VNET's IP space cannot overlap with the workers-vnet.
+The Managed VNET can be peered with a customer VNET, facilitating hybrid connectivity from Databricks compute resources via a VNET Gateway in the customer's VNET. Peering the Managed VNET to a customer VNET is configured from the Databricks blade in the Azure portal, not from the Managed VNET blade. 
 
 ![image](images/databricks-mgdvnet-peering.png)
 
-The peered customer VNET can contain Private Endpoints connecting to PaaS services, and these are reachable from the Managed VNET. However, because it is not possible to attach a Private DNS Zone to the Managed VNET, nor to modify the VNET's Custom DNS setting, Worker VMs cannot resolve PaaS service FQDN's to PE private addresses. 
+This only establishes one half of the peering, the other half must be established from the remote VNET using the Resource ID copied from the dialog box
 
 ![image](images/peerdatabricksvnet.png)
+
+The remote VNET's IP space cannot overlap with the workers-vnet.
+
+The peered customer VNET can contain Private Endpoints connecting to PaaS services, and these are reachable from the Managed VNET. 
+
+:exclamation: :point_right: It is not possible to attach a Private DNS Zone to the Managed VNET, nor to modify the VNET's Custom DNS setting. Worker VMs can therefore not resolve PaaS service FQDN's to Private Endpoint private addresses, effectively making it impossible to use Private Endpoints in the peered VNET. If Private Endpoint access to data Paas services is required, use the VNET Injection into Customer VNET pattern. 
 
 ### Managed VNET - No Public IP
 This option reverses the direction of control plane traffic: cluster compute nodes do not have Public IPs and there are no inbound flows from the control plane into nodes. Control traffic is now outbound from the nodes, via a NAT Gateway instance attached to both public-subnet and private-subnet. This is managed by the Databricks service and cannot be modified.
 
 ![image](images/databricks-mgdvnet-npip.png)
 
-### VNET Injection
+This configuration is deployed by selecting the No Public IP in the Networking tab when creating the Databricks workspace, and cannot be changed after the cluster is deployed.
+
+![image](images/databricks-mgdvnet-create-npip.png)
+
+
+### VNET Injection into Customer VNET
+The cluster is deployed into a VNET in the customer's subscription.
+
+![image](images/databricks-custvnet.png)
+
+This configuration is deployed by selecting the No Public IP in the Networking tab when creating the Databricks workspace, and cannot be changed after the cluster is deployed.
+
+![image](images/databricks-vnetinject-create.png)
+
+Customer VNET Injection can be combined with No Public IP; this creates a NAT Gateway instance in the customer's VNET. 
 
 
 ## Azure Machine Learning
