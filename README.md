@@ -168,6 +168,8 @@ This configuration is deployed by selecting the No Public IP in the Networking t
 
 ![image](images/databricks-vnetinject-create.png)
 
+### VNET Injection into Customer VNET - No Public IP
+
 Customer VNET Injection can be combined with No Public IP; this creates a NAT Gateway instance in the customer's VNET. 
 
 
