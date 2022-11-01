@@ -154,7 +154,7 @@ This option reverses the direction of control plane traffic: cluster compute nod
 
 ![image](images/databricks-mgdvnet-npip.png)
 
-This configuration is deployed by selecting the No Public IP in the Networking tab when creating the Databricks workspace, and cannot be changed after the cluster is deployed.
+This configuration is deployed by selecting the No Public IP option in the Networking tab when creating the Databricks workspace. This configuration cannot be changed after the cluster is deployed.
 
 ![image](images/databricks-mgdvnet-create-npip.png)
 
@@ -164,13 +164,19 @@ The cluster is deployed into a VNET in the customer's subscription.
 
 ![image](images/databricks-custvnet.png)
 
-This configuration is deployed by selecting the No Public IP in the Networking tab when creating the Databricks workspace, and cannot be changed after the cluster is deployed.
+This configuration is deployed by selecting the VNET option in the Networking tab when creating the Databricks workspace. This configuration cannot be changed after the cluster is deployed.
 
 ![image](images/databricks-vnetinject-create.png)
 
 ### VNET Injection into Customer VNET - No Public IP
 
 Customer VNET Injection can be combined with No Public IP; this creates a NAT Gateway instance in the customer's VNET. 
+
+![image](images/databricks-custvnet-npip.png)
+
+This configuration is deployed by selecting both the No Public IP and the VNET options in the Networking tab when creating the Databricks workspace. This configuration cannot be changed after the cluster is deployed.
+
+![image](images/databricks-vnetinject-npip-create.png)
 
 
 ## Azure Machine Learning
