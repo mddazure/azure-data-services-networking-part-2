@@ -147,9 +147,11 @@ The remote VNET's IP space cannot overlap with the workers-vnet.
 
 The peered customer VNET can contain Private Endpoints connecting to PaaS services, and these are reachable from the Managed VNET. 
 
-:exclamation: :point_right: It is not possible to attach a Private DNS Zone to the Managed VNET, nor to modify the VNET's Custom DNS setting. Worker VMs can therefore not resolve PaaS service FQDN's to Private Endpoint private addresses, effectively making it impossible to use Private Endpoints in the peered VNET. If Private Endpoint access to data Paas services is required, use the VNET Injection into Customer VNET pattern. 
+ :point_right: It is not possible to attach a Private DNS Zone to the Managed VNET, nor to modify the VNET's Custom DNS setting. Worker VMs can therefore not resolve PaaS service FQDN's to Private Endpoint private addresses, effectively making it impossible to use Private Endpoints in the peered VNET. If Private Endpoint access to data Paas services is required, use the VNET Injection into Customer VNET pattern. 
 
-### Managed VNET - No Public IP
+:point_right: Outbound traffic from Worker nodes to internet may be routed through Azure Firewall, a Network Virtual Appliance (NVA) or an on-premise internet breakout. However, traffic to the Databricks Control Plane and associated resources must be allowed to flow to the internet directly. UDRs on Worker VM subnets must contain routes with next hop Internet for each of these resources, as described in [User-defined route settings for Azure Databricks](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/udr).
+
+### Managed VNET - No Public IP (Secure Cluster Connectivity, SCC)
 This option reverses the direction of control plane traffic: cluster compute nodes do not have Public IPs and there are no inbound flows from the control plane into nodes. Control traffic is now outbound from the nodes, via a NAT Gateway instance attached to both public-subnet and private-subnet. This is managed by the Databricks service and cannot be modified.
 
 ![image](images/databricks-mgdvnet-npip.png)
@@ -158,25 +160,37 @@ This configuration is deployed by selecting the No Public IP option in the Netwo
 
 ![image](images/databricks-mgdvnet-create-npip.png)
 
+Documentation: [Secure cluster connectivity (No Public IP / NPIP)](https://learn.microsoft.com/en-us/azure/databricks/security/secure-cluster-connectivity)
+
+:point_right: If outbound traffic from workers is routed through a firewall, include UDRs allowing traffic to the control plane to break out to the internet directly, as described in the article linked above.
 
 ### VNET Injection into Customer VNET
 The cluster is deployed into a VNET in the customer's subscription.
 
 ![image](images/databricks-custvnet.png)
 
+:point_right: This option enables using Private Endpoints to access data sources from Worker nodes.
+
 This configuration is deployed by selecting the VNET option in the Networking tab when creating the Databricks workspace. This configuration cannot be changed after the cluster is deployed.
 
 ![image](images/databricks-vnetinject-create.png)
 
-### VNET Injection into Customer VNET - No Public IP
+Documentation: [Deploy Azure Databricks in your Azure virtual network (VNet injection)](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/vnet-inject)
 
-Customer VNET Injection can be combined with No Public IP; this creates a NAT Gateway instance in the customer's VNET. 
+### VNET Injection into Customer VNET - No Public IP (Secure Cluster Connectivity, SCC)
+
+Customer VNET Injection can be combined with No Public IP (Secure Cluster Connectivity, SCC). This leverages the customer VNET's egress solution - either VNET default internet access, Load Balancer with Outbound NAT rules or NAT Gateway linked to both workspace subnets.
+
+If outbound traffic from workers is routed through a firewall, ensure that either the firewall allows outbound connectivity to all dependencies, or the UDRs contain routes to let traffic to the control plane and associated resources break out to the internet directly.
+
+, as described in [User-defined route settings for Azure Databricks](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/udr).
 
 ![image](images/databricks-custvnet-npip.png)
 
-This configuration is deployed by selecting both the No Public IP and the VNET options in the Networking tab when creating the Databricks workspace. This configuration cannot be changed after the cluster is deployed.
+This configuration is deployed by selecting both the No Public IP and the VNET options in the Networking tab when creating the Databricks workspace. This deploys the .
 
 ![image](images/databricks-vnetinject-npip-create.png)
 
+Documentation: [Egress with VNet injection](https://learn.microsoft.com/en-us/azure/databricks/security/secure-cluster-connectivity#egress-with-vnet-injection)
 
 ## Azure Machine Learning
