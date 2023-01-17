@@ -16,7 +16,7 @@ This is the second part to the article summarizing networking functionality acro
     - [Managed VNET - No Public IP (Secure Cluster Connectivity, SCC)](#managed-vnet---no-public-ip-secure-cluster-connectivity-scc)
     - [VNET Injection into Customer VNET](#vnet-injection-into-customer-vnet)
     - [VNET Injection into Customer VNET - No Public IP (Secure Cluster Connectivity, SCC)](#vnet-injection-into-customer-vnet---no-public-ip-secure-cluster-connectivity-scc)
-  - [Azure Machine Learning](#azure-machine-learning)
+    - [VNET Injection into Customer VNET - Private Endpoint (Preview)](#vnet-injection-into-customer-vnet---private-endpoint-preview)
 
 ## Legend
 In the network diagrams below, arrows indicate the direction of TCP connections. This is not necessarily the same as the direction of flow of information. In the context of network infrastructure it is relevant to show "inbound" versus "outbound" at the TCP level. 
@@ -195,4 +195,18 @@ Explicit outbound connectivity must be provided separately; the Databricks deplo
 
 :point_right: Outbound traffic from Worker nodes to internet may be routed through Azure Firewall, a Network Virtual Appliance (NVA) or an on-premise internet breakout. However, traffic to the Databricks Control Plane and associated resources must be allowed to flow to the internet directly. UDRs on Worker VM subnets must contain routes with next hop Internet for each of these resources, as described in [User-defined route settings for Azure Databricks](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/udr).
 
-## Azure Machine Learning
+### VNET Injection into Customer VNET - Private Endpoint (Preview)
+Customer VNET Injection can be combined with Private Endpoints to make communication both from the user to the Databricks web portal, and from the data plane (compute nodes) to the control plane, completely private.
+
+Following [Private Endpoints](https://learn.microsoft.com/en-us/azure/databricks/administration-guide/cloud-configurations/azure/private-link) are available:
+
+- Front-end Private Link aka user-to-workspace: web portal access via Private Endpoint.
+This endpoint is injected into the client- or hub-VNET that contains user's client VMs, AVD session hosts or hybrid connectivity to on-premise. It enables private connectivity to the Databricks web interface.
+
+- Back-end Private Link aka data plane-to-control plane: compute node to Databricks service control traffic. Injected in the Databricks cluster VNET, enables private connectivity from the compute nodes to the control plane. Requires the reversal of control flow direction enabled by No Public IP / Secure Custer Connectivity.
+
+- Web authentication private connections: AAD login callback from client to Azure Databricks web app. Injected in the client- or hub-VNET.
+(Required because AAD login redirects the client to a regional shared endpoint. This has a privatelink CNAME ({stamp}.pl-auth.privatelink.databricks.net) in public DNS, which does not resolve when a Private DNS Zone named privatelink.databricks.net is attached to the client- or hub-vnet (refer to the explanation in [Issue-Customer-Unable-to-Access-PaaS-AfterPrivateLink](https://github.com/dmauser/PrivateLink/tree/master/Issue-Customer-Unable-to-Access-PaaS-AfterPrivateLink)).
+
+![image](images/databricks-custvnet-npip-pe.png)
+
